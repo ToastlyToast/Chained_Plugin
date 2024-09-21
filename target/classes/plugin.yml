@@ -1,0 +1,8 @@
+name: Chained_Plugin
+version: '1.0-SNAPSHOT'
+main: org.toastlytoast.chained_Plugin.Chained_Plugin
+api-version: '1.20'
+
+commands:
+  chain:
+    usage: /<command> <argument> <player_name>
