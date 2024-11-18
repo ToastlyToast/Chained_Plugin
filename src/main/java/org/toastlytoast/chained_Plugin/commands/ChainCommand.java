@@ -14,19 +14,11 @@ public class ChainCommand implements CommandExecutor
 
     private Player target;
 
-    // Cooldown stuff
-
-    //private boolean inviting = false;
-
-    //private boolean timeout = true;
-    //private final HashMap<UUID, Long> cooldown = new HashMap<>();
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
     {
         if (sender instanceof Player)
         {
-            //if (!timeout && inviting) cooldown(requester);
             switch(args[0].toLowerCase())
             {
                 case "invite":  InviteCommand(sender, args);
@@ -60,14 +52,9 @@ public class ChainCommand implements CommandExecutor
     {
         Player requester = (Player) sender;
 
-        //if(!timeout)
-        //{
-            //return;
-        //}
-        
-        if (groupManager.getCurrentGroup(requester) != null) 
+        if (groupManager.getCurrentGroup(requester) != null)
         {
-            requester.sendMessage("§c§lYou must leave your current group");
+            requester.sendMessage("§cYou must leave your current group");
         }
         else if (target == requester)
         {
@@ -79,40 +66,14 @@ public class ChainCommand implements CommandExecutor
 
         if (target == null)
         {
-            requester.sendMessage("§c§lThe player you've specified is not online");
+            requester.sendMessage("§cThe player you've specified is not online");
         }
         else
         {
-            //timeout = false;
-            target.sendMessage("§a§lYou have been invited to join §b" + requester.getName() + "§a's group");
-            requester.sendMessage("§a§lYour invite to §b§l" + target.getName() + "§a§l has been sent");
+            target.sendMessage("§aYou have been invited to join §b" + requester.getName() + "§a's group");
+            requester.sendMessage("§aYour invite to §b" + target.getName() + "§a has been sent");
         }
     }
-
-    /*private void cooldown(CommandSender sender)
-    {
-        Player player = (Player)sender;
-        if(!cooldown.containsKey(player.getUniqueId()))
-        {
-            cooldown.put(player.getUniqueId(), System.currentTimeMillis());
-        }
-        else
-        {
-            long elapsedTime = System.currentTimeMillis() - cooldown.get(player.getUniqueId());
-
-            if(elapsedTime >= 10000)
-            {
-                timeout = true;
-                target = null;
-                cooldown.put(player.getUniqueId(), System.currentTimeMillis());
-            }
-            else
-            {
-                timeout = false;
-                sender.sendMessage("§c§lYou cannot use this command for §6§l" + (10 - elapsedTime / 1000) + "§c§l seconds");
-            }
-        }
-    }*/
 
     private void JoinCommand(CommandSender sender, String[] args)
     {
@@ -120,7 +81,7 @@ public class ChainCommand implements CommandExecutor
         {
             sender.sendMessage("§cYou have not been requested to chain with anyone");
         }
-        
+
         Player requester = Bukkit.getPlayer(args[1]);
 
         if (requester != null)
@@ -131,36 +92,37 @@ public class ChainCommand implements CommandExecutor
         {
             sender.sendMessage("§cThat player is not online");
         }
-               
+
     }
 
     private void Join(CommandSender sender, Player requester)
     {
         Player player = (Player) sender;
         if (target == null) return;
-        else if (groupManager.getCurrentGroup(player) != null) {
+        else if (groupManager.getCurrentGroup(player) != null)
+        {
             player.sendMessage("§cYou must leave your current group to join another");
         }
-        
+
         groupManager.addMemberToGroup(requester.getName(), requester);
         groupManager.addMemberToGroup(requester.getName(), (Player)sender);
 
         player.setHealth(requester.getHealth());
         player.setFoodLevel(requester.getFoodLevel());
 
-        requester.sendMessage("§b§l" + player.getName() + "§a§l has joined the group");
-        player.sendMessage("§a§lYou have joined §b§l" + requester.getName() + "§a§l's group");
+        requester.sendMessage("§b" + player.getName() + "§a has joined the group");
+        player.sendMessage("§aYou have joined §b" + requester.getName() + "§a's group");
 
         Bukkit.getServer().broadcastMessage("Group: " + groupManager.getCurrentGroup(requester));
         target = null;
-}
+    }
 
     private void LeaveCommand(CommandSender sender)
     {
         Player player = (Player) sender;
         String currentGroup = groupManager.getCurrentGroup(player);
 
-        player.sendMessage("§c§lYou've left: §6§l" + currentGroup);
+        player.sendMessage("§cYou've left: §6" + currentGroup);
         groupManager.removeMemberFromGroup(currentGroup, player);
     }
 
@@ -168,31 +130,35 @@ public class ChainCommand implements CommandExecutor
     {
         Player player = Bukkit.getPlayer(args[1]);
         String currentGroup = groupManager.getCurrentGroup((Player) sender);
-        
-        if (!groupManager.groupExists(currentGroup)) 
+
+        if (!groupManager.groupExists(currentGroup))
         {
             sender.sendMessage("§cYou're not in a group");
         }
-        
-        if (player == null) return;
-        
+
+        if (player == null)
+        {
+            sender.sendMessage("§cPlayer " + args[1] + " does not exist");
+            return;
+        }
+
         if (sender != groupManager.getOwner(currentGroup))
         {
             sender.sendMessage("§c§lYou do not have permission to use this command");
         }
-        
+
         if (!groupManager.getGroup(currentGroup).hasMember(player))
         {
             sender.sendMessage("§cThis player is not in the chain");
         }
-        
+
         groupManager.removeMemberFromGroup(sender.getName(), player);
-        sender.sendMessage("§6§l" + player.getName() + "§c§l has been kicked");
-        player.sendMessage("§c§lYou have been kicked from §6§l" + sender.getName() + "'s§c§l group");
+        sender.sendMessage("§6" + player.getName() + "§c has been kicked");
+        player.sendMessage("§cYou have been kicked from §6" + sender.getName() + "'s§c group");
 
         if (groupManager.getGroup(currentGroup).getMembers().size() == 1)
         {
-            player.sendMessage("§3§lGroup got disbanded because everyone else left");
+            player.sendMessage("§3Group got disbanded because everyone else left");
             groupManager.disbandGroup(currentGroup);
         }
     }
@@ -202,17 +168,22 @@ public class ChainCommand implements CommandExecutor
         Player player = (Player)sender;
         String currentGroup = groupManager.getCurrentGroup((Player)sender);
 
-        if (player != groupManager.getOwner(currentGroup))
+        if (currentGroup == null)
+        {
+            sender.sendMessage("§cYou aren't in a group right now");
+            return;
+        }
+        else if (player != groupManager.getOwner(currentGroup))
         {
             sender.sendMessage("§c§lYou do not have permission to use this command");
         }
-        
-        sender.sendMessage("§a§lYou have disbanded the group");
+
+        sender.sendMessage("§aYou have disbanded the group");
         for (Player member : groupManager.getGroup(currentGroup).getMembers())
         {
             if (member != player)
             {
-                member.sendMessage("§6§l" + currentGroup + " §c§lhas been disbanded");
+                member.sendMessage("§6" + currentGroup + " §r§chas been disbanded");
                 groupManager.removeMemberFromGroup(currentGroup, member);
             }
         }
@@ -224,14 +195,14 @@ public class ChainCommand implements CommandExecutor
     {
         String currentGroup = groupManager.getCurrentGroup((Player)sender);
         Set<Player> playerList = groupManager.getPlayersInGroup(currentGroup);
-        
+
         if (currentGroup != null)
         {
             sender.sendMessage("Players in group: " + playerList);
         }
         else
         {
-            sender.sendMessage("§c§lYou're not in a group");
+            sender.sendMessage("§cYou're not in a group");
         }
     }
 }

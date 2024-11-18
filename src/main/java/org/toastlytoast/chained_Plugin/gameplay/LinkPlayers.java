@@ -86,7 +86,7 @@ public class LinkPlayers implements Listener
         player = event.getPlayer();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
             playerAliveCount += 1;
             if (playerAliveCount == groupManager.getGroup(currentGroup).getMembers().size())
@@ -110,7 +110,9 @@ public class LinkPlayers implements Listener
         {
             groupManager.getGroup(currentGroup).getMembers().forEach(p ->
             {
-                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "kill " + p.getName());
+                // Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "kill " + p.getName());
+                double damage = player.getHealth();
+                p.damage(damage);
             });
             playerAliveCount = 0;
             allMembersAlive = false;
@@ -130,7 +132,7 @@ public class LinkPlayers implements Listener
 
                 groupManager.getGroup(currentGroup).getMembers().forEach( p ->
                 {
-                    p.setHealth(playerHealth);
+                    p.setHealth(Math.clamp(playerHealth, 0.0, 20.0));
                     p.setFoodLevel(playerHunger);
                     p.setSaturation(0);
                 });

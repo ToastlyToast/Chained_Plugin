@@ -34,7 +34,7 @@ public class Group
             Objects.requireNonNull(Bukkit
                 .getServer()
                 .getPlayer(groupName))
-                .sendMessage("§c§l" + player.getName() + " has already been added to your group");
+                .sendMessage("§c" + player.getName() + " has already been added to your group");
         }
     }
 
