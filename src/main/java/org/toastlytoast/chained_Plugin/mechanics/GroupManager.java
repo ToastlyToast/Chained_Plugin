@@ -50,7 +50,8 @@ public class GroupManager
 
         if(group == null)
         {
-            Objects.requireNonNull(Bukkit.getPlayer(name)).sendMessage("§c§lThis player isn't in the group");
+            Objects.requireNonNull(Bukkit
+                .getPlayer(name)).sendMessage("§cPlayer " + player.getName() + " isn't in the group");
             return;
         }
 

@@ -46,27 +46,27 @@ public class LinkPlayers implements Listener
     private void EntityRegainHealthEvent(EntityRegainHealthEvent event)
     {
         if (!allMembersAlive) return;
-        if(!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
 
         player = (Player) event.getEntity();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
-            health = health + event.getAmount();
+            health += event.getAmount();
         }
     }
 
     @EventHandler
     private void EntityDamageEvent(EntityDamageEvent event)
     {
-        if(!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
         if (!allMembersAlive) return;
 
         player = (Player) event.getEntity();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
             health = health - event.getDamage();
             groupManager.getGroup(currentGroup).getMembers().forEach(p ->
@@ -101,12 +101,12 @@ public class LinkPlayers implements Listener
     @EventHandler
     private void EntityDeathEvent(EntityDeathEvent event)
     {
-        if(!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
 
         player = (Player) event.getEntity();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
             groupManager.getGroup(currentGroup).getMembers().forEach(p ->
             {
@@ -123,7 +123,7 @@ public class LinkPlayers implements Listener
         @Override
         public void run()
         {
-            if(currentGroup != null)
+            if (currentGroup != null)
             {
                 double playerHealth = health;
                 int playerHunger = foodLevel;

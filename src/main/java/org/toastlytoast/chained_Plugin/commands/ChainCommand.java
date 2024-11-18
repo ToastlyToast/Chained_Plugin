@@ -42,7 +42,7 @@ public class ChainCommand implements CommandExecutor
                 case "display": DisplayCommand(sender);
                     break;
                 case "help":
-                    sender.sendMessage("Possible subcommands: invite, join, leave, kick, disband, display");
+                    sender.sendMessage("Possible subcommands: invite, join, kick, leave, disband, display");
                     break;
                 default:
                     sender.sendMessage("This argument does not exist");
@@ -84,7 +84,7 @@ public class ChainCommand implements CommandExecutor
         else
         {
             //timeout = false;
-            target.sendMessage("§a§lYou have been invited to join §b§l" + requester.getName() + "§a§l's group");
+            target.sendMessage("§a§lYou have been invited to join §b" + requester.getName() + "§a's group");
             requester.sendMessage("§a§lYour invite to §b§l" + target.getName() + "§a§l has been sent");
         }
     }
@@ -116,15 +116,11 @@ public class ChainCommand implements CommandExecutor
 
     private void JoinCommand(CommandSender sender, String[] args)
     {
-        if (target == null)
+        if (target == null || target != sender)
         {
-            sender.sendMessage("§c§lYou have not been requested to chain with anyone");
+            sender.sendMessage("§cYou have not been requested to chain with anyone");
         }
-        else if (target != sender)
-        {
-            sender.sendMessage("§c§lYou have not been requested to chain with anyone");
-        }
-
+        
         Player requester = Bukkit.getPlayer(args[1]);
 
         if (requester != null)
@@ -133,7 +129,7 @@ public class ChainCommand implements CommandExecutor
         }
         else
         {
-            sender.sendMessage("§c§lThat player is not online");
+            sender.sendMessage("§cThat player is not online");
         }
                
     }
@@ -143,7 +139,7 @@ public class ChainCommand implements CommandExecutor
         Player player = (Player) sender;
         if (target == null) return;
         else if (groupManager.getCurrentGroup(player) != null) {
-            player.sendMessage("§c§lYou must leave your current group to join another");
+            player.sendMessage("§cYou must leave your current group to join another");
         }
         
         groupManager.addMemberToGroup(requester.getName(), requester);
@@ -175,19 +171,19 @@ public class ChainCommand implements CommandExecutor
         
         if (!groupManager.groupExists(currentGroup)) 
         {
-            sender.sendMessage("§c§lYou're not in a group");
+            sender.sendMessage("§cYou're not in a group");
         }
         
         if (player == null) return;
         
-        if (sender != groupManager.getOwner(groupManager.getCurrentGroup((Player)sender)))
+        if (sender != groupManager.getOwner(currentGroup))
         {
             sender.sendMessage("§c§lYou do not have permission to use this command");
         }
         
         if (!groupManager.getGroup(currentGroup).hasMember(player))
         {
-            sender.sendMessage("§c§lThis player is not in the chain");
+            sender.sendMessage("§cThis player is not in the chain");
         }
         
         groupManager.removeMemberFromGroup(sender.getName(), player);
@@ -196,6 +192,7 @@ public class ChainCommand implements CommandExecutor
 
         if (groupManager.getGroup(currentGroup).getMembers().size() == 1)
         {
+            player.sendMessage("§3§lGroup got disbanded because everyone else left");
             groupManager.disbandGroup(currentGroup);
         }
     }
