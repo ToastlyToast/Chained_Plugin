@@ -46,27 +46,27 @@ public class LinkPlayers implements Listener
     private void EntityRegainHealthEvent(EntityRegainHealthEvent event)
     {
         if (!allMembersAlive) return;
-        if(!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
 
         player = (Player) event.getEntity();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
-            health = health + event.getAmount();
+            health += event.getAmount();
         }
     }
 
     @EventHandler
     private void EntityDamageEvent(EntityDamageEvent event)
     {
-        if(!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
         if (!allMembersAlive) return;
 
         player = (Player) event.getEntity();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
             health = health - event.getDamage();
             groupManager.getGroup(currentGroup).getMembers().forEach(p ->
@@ -86,7 +86,7 @@ public class LinkPlayers implements Listener
         player = event.getPlayer();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
             playerAliveCount += 1;
             if (playerAliveCount == groupManager.getGroup(currentGroup).getMembers().size())
@@ -101,16 +101,18 @@ public class LinkPlayers implements Listener
     @EventHandler
     private void EntityDeathEvent(EntityDeathEvent event)
     {
-        if(!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
 
         player = (Player) event.getEntity();
         currentGroup = groupManager.getCurrentGroup(player);
 
-        if(currentGroup != null)
+        if (currentGroup != null)
         {
             groupManager.getGroup(currentGroup).getMembers().forEach(p ->
             {
-                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "kill " + p.getName());
+                // Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "kill " + p.getName());
+                double damage = player.getHealth();
+                p.damage(damage);
             });
             playerAliveCount = 0;
             allMembersAlive = false;
@@ -123,14 +125,14 @@ public class LinkPlayers implements Listener
         @Override
         public void run()
         {
-            if(currentGroup != null)
+            if (currentGroup != null)
             {
                 double playerHealth = health;
                 int playerHunger = foodLevel;
 
                 groupManager.getGroup(currentGroup).getMembers().forEach( p ->
                 {
-                    p.setHealth(playerHealth);
+                    p.setHealth(Math.clamp(playerHealth, 0.0, 20.0));
                     p.setFoodLevel(playerHunger);
                     p.setSaturation(0);
                 });

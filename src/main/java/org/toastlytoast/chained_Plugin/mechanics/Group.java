@@ -25,21 +25,24 @@ public class Group
     
     public void addMember(Player player)
     {
-        if(!members.contains(player))
+        if (!members.contains(player))
         {
             members.add(player);
-
-        }else
+        }
+        else
         {
-            Objects.requireNonNull(Bukkit.getServer().getPlayer(groupName)).sendMessage("§c§lThis player has already been added to your group");
+            Objects.requireNonNull(Bukkit
+                .getServer()
+                .getPlayer(groupName))
+                .sendMessage("§c" + player.getName() + " has already been added to your group");
         }
     }
 
     public void removeMember(Player player)
     {
-        if(!members.contains(player))
+        if (!members.contains(player))
         {
-            Objects.requireNonNull(Bukkit.getPlayer(groupName)).sendMessage("§c§lThis player is not in the group");
+            Objects.requireNonNull(Bukkit.getPlayer(groupName)).sendMessage("§cPlayer " + player.getName() + " is not in the group");
         }
         else
         {

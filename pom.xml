@@ -6,13 +6,13 @@
 
     <groupId>org.toastlytoast</groupId>
     <artifactId>Chained_Plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Chained_Plugin</name>
+    <name>ChainedPlugin</name>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

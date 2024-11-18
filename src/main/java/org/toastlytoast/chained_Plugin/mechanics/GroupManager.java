@@ -34,7 +34,7 @@ public class GroupManager
     {
         Group group = groupManager.get(name);
 
-        if(group == null)
+        if (group == null)
         {
             group = new Group(name);
             group.createGroup(name);
@@ -48,9 +48,10 @@ public class GroupManager
     {
         Group group = groupManager.get(name);
 
-        if(group == null)
+        if (group == null)
         {
-            Objects.requireNonNull(Bukkit.getPlayer(name)).sendMessage("§c§lThis player isn't in the group");
+            Objects.requireNonNull(Bukkit
+                .getPlayer(name)).sendMessage("§cPlayer " + player.getName() + " isn't in the group");
             return;
         }
 
@@ -61,7 +62,7 @@ public class GroupManager
     public Set<Player> getPlayersInGroup(String name)
     {
         Group group = groupManager.get(name);
-        if(group != null)
+        if (group != null)
         {
             return group.getMembers();
         }

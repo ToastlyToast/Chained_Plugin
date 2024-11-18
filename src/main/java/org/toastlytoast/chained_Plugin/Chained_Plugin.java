@@ -21,7 +21,7 @@ public final class Chained_Plugin extends JavaPlugin
     {
         instance = this;
 
-        System.out.println("The plugin is enabled");
+        System.out.println("ChainedPlugin enabled!");
 
         Objects.requireNonNull(getCommand("chain")).setExecutor(new ChainCommand());
 
@@ -33,6 +33,6 @@ public final class Chained_Plugin extends JavaPlugin
     public void onDisable()
     {
         instance = null;
-        System.out.println("The plugin is disabled");
+        System.out.println("ChainedPlugin disabled!");
     }
 }
