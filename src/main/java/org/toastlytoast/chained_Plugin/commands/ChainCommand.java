@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.toastlytoast.chained_Plugin.mechanics.GroupManager;
+import java.util.Set;
 
 public class ChainCommand implements CommandExecutor
 {
@@ -40,6 +41,9 @@ public class ChainCommand implements CommandExecutor
                     break;
                 case "display": DisplayCommand(sender);
                     break;
+                case "help":
+                    sender.sendMessage("Possible subcommands: invite, join, leave, kick, disband, display");
+                    break;
                 default:
                     sender.sendMessage("This argument does not exist");
                     return false;
@@ -60,31 +64,28 @@ public class ChainCommand implements CommandExecutor
         //{
             //return;
         //}
-
-        if (groupManager.getCurrentGroup(requester) == null)
+        
+        if (groupManager.getCurrentGroup(requester) != null) 
         {
-            if (target == requester)
-            {
-                Join(requester, Bukkit.getPlayer(args[1]));
-                return;
-            }
+            requester.sendMessage("§c§lYou must leave your current group");
+        }
+        else if (target == requester)
+        {
+            Join(requester, Bukkit.getPlayer(args[1]));
+            return;
+        }
 
-            this.target = Bukkit.getPlayer(args[1]);
+        this.target = Bukkit.getPlayer(args[1]);
 
-            if (target != null)
-            {
-                //timeout = false;
-                target.sendMessage("§a§lYou have been invited to join §b§l" + requester.getName() + "§a§l's group");
-                requester.sendMessage("§a§lYour invite to §b§l" + target.getName() + "§a§l has been sent");
-            }
-            else
-            {
-                requester.sendMessage("§c§lThe player you've specified is not online");
-            }
+        if (target == null)
+        {
+            requester.sendMessage("§c§lThe player you've specified is not online");
         }
         else
         {
-            requester.sendMessage("§c§lYou must leave your current group");
+            //timeout = false;
+            target.sendMessage("§a§lYou have been invited to join §b§l" + requester.getName() + "§a§l's group");
+            requester.sendMessage("§a§lYour invite to §b§l" + target.getName() + "§a§l has been sent");
         }
     }
 
@@ -115,57 +116,48 @@ public class ChainCommand implements CommandExecutor
 
     private void JoinCommand(CommandSender sender, String[] args)
     {
-        if(target != null)
-        {
-            if (target == sender)
-            {
-                Player requester = Bukkit.getPlayer(args[1]);
-
-                if (requester != null)
-                {
-                    Join(sender, requester);
-                }
-                else
-                {
-                    sender.sendMessage("§c§lThat player is not online");
-                }
-            }
-            else
-            {
-                sender.sendMessage("§c§lYou have not been requested to chain with anyone");
-            }
-        }
-        else
+        if (target == null)
         {
             sender.sendMessage("§c§lYou have not been requested to chain with anyone");
         }
+        else if (target != sender)
+        {
+            sender.sendMessage("§c§lYou have not been requested to chain with anyone");
+        }
+
+        Player requester = Bukkit.getPlayer(args[1]);
+
+        if (requester != null)
+        {
+            Join(sender, requester);
+        }
+        else
+        {
+            sender.sendMessage("§c§lThat player is not online");
+        }
+               
     }
 
     private void Join(CommandSender sender, Player requester)
     {
         Player player = (Player) sender;
-        if (target != null)
-        {
-            if(groupManager.getCurrentGroup(player) == null)
-            {
-                groupManager.addMemberToGroup(requester.getName(), requester);
-                groupManager.addMemberToGroup(requester.getName(), (Player)sender);
-
-                player.setHealth(requester.getHealth());
-                player.setFoodLevel(requester.getFoodLevel());
-
-                requester.sendMessage("§b§l" + player.getName() + "§a§l has joined the group");
-                player.sendMessage("§a§lYou have joined §b§l" + requester.getName() + "§a§l's group");
-
-                Bukkit.getServer().broadcastMessage("Group: " + groupManager.getCurrentGroup(requester));
-                target = null;
-            }
-            else
-            {
-                player.sendMessage("§c§lYou must leave your current group to join another");
-            }
+        if (target == null) return;
+        else if (groupManager.getCurrentGroup(player) != null) {
+            player.sendMessage("§c§lYou must leave your current group to join another");
         }
-    }
+        
+        groupManager.addMemberToGroup(requester.getName(), requester);
+        groupManager.addMemberToGroup(requester.getName(), (Player)sender);
+
+        player.setHealth(requester.getHealth());
+        player.setFoodLevel(requester.getFoodLevel());
+
+        requester.sendMessage("§b§l" + player.getName() + "§a§l has joined the group");
+        player.sendMessage("§a§lYou have joined §b§l" + requester.getName() + "§a§l's group");
+
+        Bukkit.getServer().broadcastMessage("Group: " + groupManager.getCurrentGroup(requester));
+        target = null;
+}
 
     private void LeaveCommand(CommandSender sender)
     {
@@ -180,37 +172,31 @@ public class ChainCommand implements CommandExecutor
     {
         Player player = Bukkit.getPlayer(args[1]);
         String currentGroup = groupManager.getCurrentGroup((Player) sender);
-
-        if (groupManager.groupExists(currentGroup))
-        {
-            if(player == null) return;
-
-            if(sender == groupManager.getOwner(groupManager.getCurrentGroup((Player)sender)))
-            {
-                if(groupManager.getGroup(currentGroup).hasMember(player))
-                {
-                    groupManager.removeMemberFromGroup(sender.getName(), player);
-                    sender.sendMessage("§6§l" + player.getName() + "§c§l has been kicked");
-                    player.sendMessage("§c§lYou have been kicked from §6§l" + sender.getName() + "'s§c§l group");
-
-                    if (groupManager.getGroup(currentGroup).getMembers().size() == 1)
-                    {
-                        groupManager.disbandGroup(currentGroup);
-                    }
-                }
-                else
-                {
-                    sender.sendMessage("§c§lThis player is not in the chain");
-                }
-            }
-            else
-            {
-                sender.sendMessage("§c§lYou do not have permission to use this command");
-            }
-        }
-        else
+        
+        if (!groupManager.groupExists(currentGroup)) 
         {
             sender.sendMessage("§c§lYou're not in a group");
+        }
+        
+        if (player == null) return;
+        
+        if (sender != groupManager.getOwner(groupManager.getCurrentGroup((Player)sender)))
+        {
+            sender.sendMessage("§c§lYou do not have permission to use this command");
+        }
+        
+        if (!groupManager.getGroup(currentGroup).hasMember(player))
+        {
+            sender.sendMessage("§c§lThis player is not in the chain");
+        }
+        
+        groupManager.removeMemberFromGroup(sender.getName(), player);
+        sender.sendMessage("§6§l" + player.getName() + "§c§l has been kicked");
+        player.sendMessage("§c§lYou have been kicked from §6§l" + sender.getName() + "'s§c§l group");
+
+        if (groupManager.getGroup(currentGroup).getMembers().size() == 1)
+        {
+            groupManager.disbandGroup(currentGroup);
         }
     }
 
@@ -219,32 +205,32 @@ public class ChainCommand implements CommandExecutor
         Player player = (Player)sender;
         String currentGroup = groupManager.getCurrentGroup((Player)sender);
 
-        if (player == groupManager.getOwner(currentGroup))
-        {
-            sender.sendMessage("§a§lYou have disbanded the group");
-            for (Player member : groupManager.getGroup(currentGroup).getMembers())
-            {
-                if(member != player)
-                {
-                    member.sendMessage("§6§l" + currentGroup + " §c§lhas been disbanded");
-                    groupManager.removeMemberFromGroup(currentGroup, member);
-                }
-            }
-            groupManager.removeMemberFromGroup(currentGroup, player);
-            groupManager.disbandGroup(currentGroup);
-        }
-        else
+        if (player != groupManager.getOwner(currentGroup))
         {
             sender.sendMessage("§c§lYou do not have permission to use this command");
         }
+        
+        sender.sendMessage("§a§lYou have disbanded the group");
+        for (Player member : groupManager.getGroup(currentGroup).getMembers())
+        {
+            if (member != player)
+            {
+                member.sendMessage("§6§l" + currentGroup + " §c§lhas been disbanded");
+                groupManager.removeMemberFromGroup(currentGroup, member);
+            }
+        }
+        groupManager.removeMemberFromGroup(currentGroup, player);
+        groupManager.disbandGroup(currentGroup);
     }
 
     private void DisplayCommand(CommandSender sender)
     {
         String currentGroup = groupManager.getCurrentGroup((Player)sender);
+        Set<Player> playerList = groupManager.getPlayersInGroup(currentGroup);
+        
         if (currentGroup != null)
         {
-            sender.sendMessage("Players in group: " + groupManager.getPlayersInGroup(groupManager.getCurrentGroup((Player) sender)));
+            sender.sendMessage("Players in group: " + playerList);
         }
         else
         {
