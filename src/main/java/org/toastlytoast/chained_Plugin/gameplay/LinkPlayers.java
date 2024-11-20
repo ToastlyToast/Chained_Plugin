@@ -10,9 +10,17 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.toastlytoast.chained_Plugin.commands.ChainCommand;
 import org.toastlytoast.chained_Plugin.mechanics.GroupManager;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LinkPlayers implements Listener
 {
@@ -28,6 +36,9 @@ public class LinkPlayers implements Listener
 
     boolean allMembersAlive = true;
     int playerAliveCount = 0;
+
+    // A map to track the last known inventory for each player
+    private static Map<Player, Inventory> playerInventories = new HashMap<>();
 
     @EventHandler
     private void FoodLevelChangeEvent(FoodLevelChangeEvent event)
@@ -55,6 +66,83 @@ public class LinkPlayers implements Listener
         {
             health += event.getAmount();
         }
+    }
+
+    @EventHandler
+    private void onInventoryClick(InventoryClickEvent event)
+    {
+        if (event == null) {
+            System.out.println("InventoryClickEvent is null");
+            return;
+        }
+        handleInventoryEvent(event);
+    }
+
+    @EventHandler
+    private void onInventoryDrag(InventoryDragEvent event)
+    {
+        if (event == null) {
+            System.out.println("InventoryDragEvent is null");
+            return;
+        }
+        
+        handleInventoryEvent(event);
+    }
+
+    @EventHandler
+    private void onInventoryClose(InventoryCloseEvent event)
+    {
+        Player player = (Player) event.getPlayer();
+        currentGroup = groupManager.getCurrentGroup(player);
+
+        if (currentGroup != null)
+        {
+            playerInventories.remove(player);
+            syncInventories();
+        }
+    }
+
+    private void handleInventoryEvent(InventoryEvent event)
+    {
+        Player player = null;
+
+        if (event instanceof InventoryClickEvent)
+        {
+            player = (Player) ((InventoryClickEvent) event).getWhoClicked();
+        }
+        else if (event instanceof InventoryDragEvent)
+        {
+            player = (Player) ((InventoryDragEvent) event).getWhoClicked();
+        }
+        else if (player == null || currentGroup == null)
+        {
+            return;
+        }
+
+        currentGroup = groupManager.getCurrentGroup(player);
+        Inventory inventory = player.getInventory();
+        Inventory lastKnownInventory = playerInventories.get(player);
+
+        if (!inventory.equals(lastKnownInventory))
+        {
+            playerInventories.put(player, inventory);
+            syncInventories();
+        }
+    }
+
+    private void syncInventories()
+    {
+        if (currentGroup == null)
+	{
+	    Bukkit.getLogger().info("Current group is null");
+	}
+        groupManager.getGroup(currentGroup).getMembers().forEach(p -> {
+            Inventory currentInventory = playerInventories.get(p);
+            if (currentInventory != null)
+            {
+                p.getInventory().setContents(currentInventory.getContents());
+            }
+        });
     }
 
     @EventHandler
@@ -111,8 +199,7 @@ public class LinkPlayers implements Listener
             groupManager.getGroup(currentGroup).getMembers().forEach(p ->
             {
                 // Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "kill " + p.getName());
-                double damage = player.getHealth();
-                p.damage(damage);
+                p.damage(player.getHealth());
             });
             playerAliveCount = 0;
             allMembersAlive = false;
