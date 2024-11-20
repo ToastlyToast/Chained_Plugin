@@ -31,13 +31,13 @@ public class ChainCommand implements CommandExecutor
                     break;
                 case "disband": DisbandCommand(sender);
                     break;
-                case "display": DisplayCommand(sender);
+                case "list":    DisplayCommand(sender);
                     break;
-                case "help":
-                    sender.sendMessage("Possible subcommands: invite, join, kick, leave, disband, display");
+                case "help":    HelpCommand(sender);
                     break;
                 default:
-                    sender.sendMessage("This argument does not exist");
+                    sender.sendMessage("Subcommand " + args[0] + " does not exist");
+                    HelpCommand(sender);
                     return false;
             }
         }
@@ -48,9 +48,21 @@ public class ChainCommand implements CommandExecutor
         return true;
     }
 
+    private void HelpCommand(CommandSender sender) {
+        sender.sendMessage("Possible subcommands: invite, join, kick, leave, disband, list");
+        sender.sendMessage("- §binvite§r §e<player>§r :: §7Invites a player to join your group");
+        sender.sendMessage("- §bjoin§r §e<player>§r :: §7Joins a group");
+        sender.sendMessage("- §bkick§r §e<player>§r :: §7Kicks a player from your group");
+        sender.sendMessage("- §blist§r :: §7Displays the players in your group");
+        sender.sendMessage("- §bleave§r :: §7Leaves your current group");
+        sender.sendMessage("- §bdisband§r :: §7Disbands your group");
+        sender.sendMessage("- §bhelp§r :: §7Displays this message");
+    }
+
     private void InviteCommand(CommandSender sender, String[] args)
     {
         Player requester = (Player) sender;
+        Player targetArgs = Bukkit.getPlayer(args[1]);
 
         if (groupManager.getCurrentGroup(requester) != null)
         {
@@ -58,11 +70,11 @@ public class ChainCommand implements CommandExecutor
         }
         else if (target == requester)
         {
-            Join(requester, Bukkit.getPlayer(args[1]));
+            Join(requester, targetArgs);
             return;
         }
 
-        this.target = Bukkit.getPlayer(args[1]);
+        this.target = targetArgs;
 
         if (target == null)
         {
@@ -84,7 +96,7 @@ public class ChainCommand implements CommandExecutor
 
         Player requester = Bukkit.getPlayer(args[1]);
 
-        if (requester != null)
+        if (requester != null && requester.isOnline())
         {
             Join(sender, requester);
         }
@@ -92,7 +104,6 @@ public class ChainCommand implements CommandExecutor
         {
             sender.sendMessage("§cThat player is not online");
         }
-
     }
 
     private void Join(CommandSender sender, Player requester)
@@ -113,7 +124,7 @@ public class ChainCommand implements CommandExecutor
         requester.sendMessage("§b" + player.getName() + "§a has joined the group");
         player.sendMessage("§aYou have joined §b" + requester.getName() + "§a's group");
 
-        Bukkit.getServer().broadcastMessage("Group: " + groupManager.getCurrentGroup(requester));
+        // Bukkit.getServer().broadcastMessage("Group: " + groupManager.getCurrentGroup(requester));
         target = null;
     }
 
